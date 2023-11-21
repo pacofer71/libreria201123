@@ -85,6 +85,19 @@ class Autores extends Conexion{
         parent::$conexion=null;
         return $stmt->fetchAll(PDO::FETCH_OBJ);
     }
+    public static function existeIdAutor(int $id): bool{
+        parent::setConexion();
+        $q="select id from autores where id=:i";
+        $stmt=parent::$conexion->prepare($q);
+        try{
+            $stmt->execute([':i'=>$id]);
+        }catch(PDOException $ex){
+            die("error en existeIdAutor ".$ex->getMessage());
+        }
+        parent::$conexion=null;
+        return $stmt->rowCount(); 
+    }
+
     //-----------------------SETTERS
 
     /**

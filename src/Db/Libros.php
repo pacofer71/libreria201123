@@ -44,12 +44,12 @@ class Libros extends Conexion{
     }
 
     //__________________________ FAKER________________________________________________________  
-    private static function hayLibros():bool{
+    public static function hayLibros(?string $titulo=null):bool{
         parent::setConexion();
-        $q="select id from libros";
+        $q=($titulo==null) ? "select id from libros" : "select id from libros where titulo=:t";
         $stmt=parent::$conexion->prepare($q);
         try{
-            $stmt->execute();
+            ($titulo == null) ? $stmt->execute() : $stmt->execute([':t'=>$titulo]);
         }catch(PDOException $ex){
             die("error en hayLibros() ".$ex->getMessage());
         }

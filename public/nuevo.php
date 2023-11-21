@@ -1,10 +1,67 @@
 <?php
 
 use App\Db\Autores;
+use App\Db\Libros;
+use App\Utils\Utilidades;
+
+use const App\Utils\MAY_ON;
 
 session_start();
 require_once __DIR__ . "/../vendor/autoload.php";
 $autores = Autores::read();
+if(isset($_POST['btn'])){
+    $titulo=Utilidades::sanearCadenas($_POST['titulo'], MAY_ON);
+    $sinopsis=Utilidades::sanearCadenas($_POST['sinopsis'], MAY_ON);
+    $autor_id=(int)$_POST['autor_id'];
+
+    $errores=false;
+    if(!Utilidades::isCadenaValida("Titulo", $titulo, 3)){
+        $errores = true;
+    }else{
+        if(Utilidades::existeTitulo($titulo)){
+            $errores=true;
+        }
+    }
+
+    if(!Utilidades::isCadenaValida("Sinopsis", $sinopsis, 10)){
+        $errores = true;
+    }
+    if(!Utilidades::isAutorValido($autor_id)){
+        $errores=true;
+    }
+
+    //Procesando Imagen
+    $portada="img/portadas/default.webp";
+    if(is_uploaded_file($_FILES['portada']['tmp_name'])){
+        //comprobamos que sea una imagen y no excedea los 2MB
+        if(Utilidades::isImagenValida($_FILES['portada']['type'], $_FILES['portada']['size'])){
+            //Imagen y tamaño válido procedemos a guardarla
+            $portada="img/portadas/".uniqid()."_".$_FILES['portada']['name'];
+            if(!move_uploaded_file($_FILES['portada']['tmp_name'], "./$portada")){
+                $errores=true;
+                $_SESSION['Portada']="** No se pudo mover la imagen al directorio de destino";
+            }
+
+        }else{
+            $errores=true;
+        }
+    }
+
+    if($errores){
+        header("Location:nuevo.php");
+        die();
+    }
+    (new Libros)->setTitulo($titulo)
+    ->setPortada($portada)
+    ->setSinopsis($sinopsis)
+    ->setAutorId($autor_id)
+    ->create();
+
+    $_SESSION['mensaje']="Libro Guardado";
+    header("Location:index.php");
+
+
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -30,12 +87,18 @@ $autores = Autores::read();
                     TITULO
                 </label>
                 <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="titulo" type="text" placeholder="Titulo libro..." name="titulo" />
+                <?php
+                    Utilidades::pintarErrores('Titulo');
+                ?>
             </div>
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="sinopsis">
                     RESUMEN
                 </label>
                 <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="sinopsis" id="sinopsis" placehoder="Resumen del libro..."></textarea>
+                <?php
+                    Utilidades::pintarErrores('Sinopsis');
+                ?>
             </div>
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="autor_id">
@@ -49,6 +112,9 @@ $autores = Autores::read();
                     }
                     ?>
                 </select>
+                <?php
+                    Utilidades::pintarErrores('Autor_id');
+                ?>
             </div>
             <div class="mb-4 flex justify-between">
                 <div class="w-full">
@@ -56,7 +122,9 @@ $autores = Autores::read();
                         PORTADA
                     </label>
                     <input type='file' name="portada" id="portada" accept="image/*" oninput="img.src=window.URL.createObjectURL(this.files[0])" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-
+                    <?php
+                    Utilidades::pintarErrores('Portada');
+                ?>
                 </div>
                 <div class="ml-8">
                     <img src="./img/portadas/default.webp" class="w-60" id="img">
