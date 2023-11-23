@@ -41,6 +41,14 @@ class Utilidades{
         }
         return false;
     }
+    public static function existeTituloUpdate(string $titulo, int $id): bool{
+        if(Libros::hayLibrosUpdate($titulo, $id)){
+            $_SESSION['Titulo']="*** Este título ya existe en nuestros registros";
+            return true;
+        }
+        return false;
+        
+    }
 
     public static function isAutorValido(int $id): bool{
         if(Autores::existeIdAutor($id)) return true;

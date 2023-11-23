@@ -29,6 +29,23 @@ class Libros extends Conexion{
         }
         parent::$conexion=null;
     }
+    public function update(int $id){
+        $q="update libros set titulo=:t, sinopsis=:s, autor_id=:ai, portada=:p where id=:i";
+        $stmt=parent::$conexion->prepare($q);
+        try{
+            $stmt->execute([
+                ':t'=>$this->titulo,
+                ':p'=>$this->portada,
+                ':s'=>$this->sinopsis,
+                ':ai'=>$this->autor_id,
+                ':i'=>$id
+            ]);
+        }catch(PDOException $ex){
+            die("Error en update(): ".$ex->getMessage());
+        }
+        parent::$conexion=null;
+    }
+
     public static function read(?int $id=null): array{
         parent::setConexion();
         $q=($id==null) ? "select libros.*, nombre, apellidos, pais from libros, autores where autores.id=autor_id order by apellidos"
@@ -43,15 +60,42 @@ class Libros extends Conexion{
         return $stmt->fetchAll(PDO::FETCH_OBJ); 
     }
 
+    public static function delete(int $id){
+        parent::setConexion();
+        $q="delete from libros where id=:i";
+        $stmt=parent::$conexion->prepare($q);
+        try{
+            $stmt->execute([':i'=>$id]);
+        }catch(PDOException $ex){
+            die("Error en delete(): ".$ex->getMessage());
+        }
+        parent::$conexion=null;
+    }
+
     //__________________________ FAKER________________________________________________________  
     public static function hayLibros(?string $titulo=null):bool{
         parent::setConexion();
-        $q=($titulo==null) ? "select id from libros" : "select id from libros where titulo=:t";
+        $q=($titulo==null) ? "select id from libros" :  "select id from libros where titulo=:t";
         $stmt=parent::$conexion->prepare($q);
         try{
             ($titulo == null) ? $stmt->execute() : $stmt->execute([':t'=>$titulo]);
         }catch(PDOException $ex){
             die("error en hayLibros() ".$ex->getMessage());
+        }
+        parent::$conexion=null;
+        return $stmt->rowCount();
+    }
+    public static function hayLibrosUpdate(string $titulo, int $id):bool{
+        parent::setConexion();
+        $q="select id from libros where titulo=:t AND id != :i";
+        $stmt=parent::$conexion->prepare($q);
+        try{
+            $stmt->execute([
+                ':t'=>$titulo, 
+                ':i'=>$id
+            ]);
+        }catch(PDOException $ex){
+            die("error en hayLibrosUpdate() ".$ex->getMessage());
         }
         parent::$conexion=null;
         return $stmt->rowCount();

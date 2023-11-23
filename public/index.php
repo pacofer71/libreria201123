@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 use App\Db\Autores;
 use App\Db\Libros;
@@ -54,7 +55,7 @@ $libros=Libros::read();
                     echo <<<TXT
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                     <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                        <a href="detalle.php?idLibro={$item->id}"><i class='fas fa-info text-blue-600'></i></a>
+                        <a href="detalle.php?idLibro={$item->id}"><i class='text-lg fas fa-info text-blue-600'></i></a>
                     </th>
                     <td class="px-6 py-4">
                         {$item->titulo}
@@ -63,7 +64,13 @@ $libros=Libros::read();
                         {$item->apellidos}, {$item->nombre}
                     </td>
                     <td class="px-6 py-4 text-right">
-                        Botones
+                        <form action="borrar.php" method="POST">
+                        <input type='hidden' name='idLibro' value='{$item->id}' />
+                        <a href="update.php?id={$item->id}"><i class="ml-2 text-lg fas fa-edit text-green-500"></i></a>
+                        <button type='submit'>
+                        <i class="text-lg fas fa-trash text-red-700"></i>
+                        </button>
+                        </form>
                     </td>
                 </tr>
                 TXT;
@@ -74,6 +81,23 @@ $libros=Libros::read();
     </div>
 
     <!-- FIN DE TABLA -->
+    <!-- Seewt alert 2 -->
+    <?php
+        if(isset($_SESSION['mensaje'])){
+            echo <<<TXT
+                <script>
+                Swal.fire({
+                    icon: "success",
+                    title: "{$_SESSION['mensaje']}",
+                    showConfirmButton: false,
+                    timer: 1500
+                  });
+                </script>
+            TXT;
+            unset($_SESSION['mensaje']);
+        }
+    ?>
+    <!-- Fin -->
 </body>
 
 </html>
